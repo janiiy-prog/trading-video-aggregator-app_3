@@ -1,0 +1,124 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+
+    # Real Postgres, not a mock — this is what actually catches SQL bugs
+    # (bad column refs, syntax errors in the migration, etc.) that a plain
+    # syntax check can't see.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: trading_video_app
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/trading_video_app
+      NODE_ENV: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          # No `cache: npm` yet — there's no committed package-lock.json
+          # (couldn't run a real `npm install` while building this offline).
+          # Run `npm install` locally once, commit the lockfile, then add
+          # `cache: npm` back here for faster CI runs.
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build (tsc)
+        run: npm run build
+
+      - name: Run migrations against real Postgres
+        run: npx tsx src/db/migrate.ts
+
+      - name: Run migrations again (idempotency check)
+        run: npx tsx src/db/migrate.ts
+
+      - name: Seed fake data
+        run: npm run seed:fake
+
+      - name: Start API and smoke-test endpoints
+        run: |
+          node dist/api/server.js &
+          API_PID=$!
+          # give it a moment to bind the port
+          for i in $(seq 1 10); do
+            curl -sf http://localhost:3000/health && break
+            sleep 1
+          done
+
+          echo "--- /health ---"
+          curl -sf http://localhost:3000/health
+
+          echo "--- /videos ---"
+          curl -sf "http://localhost:3000/videos?instrument=ES" | tee /tmp/videos.json
+          grep -q '"videos"' /tmp/videos.json
+
+          echo "--- /facets ---"
+          curl -sf http://localhost:3000/facets | tee /tmp/facets.json
+          grep -q '"facets"' /tmp/facets.json
+
+          echo "--- /channels ---"
+          curl -sf http://localhost:3000/channels | grep -q '"channels"'
+
+          echo "--- POST /saved-searches ---"
+          curl -sf -X POST http://localhost:3000/saved-searches \
+            -H "Content-Type: application/json" -H "x-user-id: ci-test@example.com" \
+            -d '{"name":"CI test search","filter_spec":{"instrument":["ES"]}}' \
+            | tee /tmp/saved.json
+          grep -q '"id"' /tmp/saved.json
+
+          kill $API_PID
+
+      - name: Run digest cron (should find the just-created saved search and log a would-send)
+        run: npx tsx src/worker/notifications/runDigestCron.ts
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          # See backend job comment — no lockfile committed yet, so no cache option here either.
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build (real Vite build, not just a syntax check)
+        run: npm run build
+
+  validate-render-yaml:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate render.yaml is well-formed YAML
+        run: python3 -c "import yaml; yaml.safe_load(open('render.yaml')); print('OK')"

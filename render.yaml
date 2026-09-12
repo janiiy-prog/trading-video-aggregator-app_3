@@ -1,0 +1,103 @@
+services:
+  - type: web
+    name: trading-video-api
+    runtime: node
+    plan: starter
+    # Migration + fake-data seed run on every deploy — both are safe to
+    # repeat (migrate tracks what's applied; seed:fake upserts). This means
+    # a brand-new deploy shows real working data with zero terminal commands.
+    # Once you've got real YouTube data flowing, you can drop "npm run seed:fake".
+    buildCommand: npm install && npm run build && npx tsx src/db/migrate.ts && npm run seed:fake
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: trading-video-db
+          property: connectionString
+      - key: YOUTUBE_API_KEY
+        sync: false # optional at first — only needed once you want real YouTube data instead of the fake demo data
+      - key: ANTHROPIC_API_KEY
+        sync: false # optional — only used for the classification worker's LLM tiebreak step
+      - key: RESEND_API_KEY
+        sync: false # optional — only needed to actually send saved-search digest emails
+      - key: DIGEST_FROM_EMAIL
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false # set to your deployed frontend's URL once you have it
+
+  # Channel poller — cheap on YouTube quota (playlistItems.list), safe to run often.
+  - type: cron
+    name: poll-channels
+    runtime: node
+    plan: starter
+    schedule: "0 */6 * * *" # every 6 hours
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:worker:poll
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: trading-video-db
+          property: connectionString
+      - key: YOUTUBE_API_KEY
+        sync: false
+
+  - type: cron
+    name: fetch-transcripts
+    runtime: node
+    plan: starter
+    schedule: "15 */6 * * *" # offset 15min after the poller so new videos exist
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:worker:transcripts
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: trading-video-db
+          property: connectionString
+
+  - type: cron
+    name: classify-videos
+    runtime: node
+    plan: starter
+    schedule: "30 */6 * * *" # offset after transcripts, so classification sees them
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:worker:classify
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: trading-video-db
+          property: connectionString
+      - key: ANTHROPIC_API_KEY
+        sync: false
+
+  - type: cron
+    name: digest-cron
+    runtime: node
+    plan: starter
+    schedule: "0 */4 * * *" # every 4 hours, per design doc Section 6
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:worker:digest
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: trading-video-db
+          property: connectionString
+      - key: RESEND_API_KEY
+        sync: false
+      - key: DIGEST_FROM_EMAIL
+        sync: false
+
+databases:
+  - name: trading-video-db
+    plan: basic-256mb
+    databaseName: trading_video_app
+    user: trading_video_app
