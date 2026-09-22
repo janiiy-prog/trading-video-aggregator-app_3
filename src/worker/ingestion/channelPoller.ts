@@ -17,8 +17,10 @@ interface PlaylistItem {
 async function getUploadsPlaylistId(channelId: string): Promise<string> {
   const url = `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${channelId}&key=${YOUTUBE_API_KEY}`;
   const res = await fetch(url);
-  const data = await res.json();
-  const playlistId = data.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
+     const data = (await res.json()) as {
+     items?: Array<{ contentDetails?: { relatedPlaylists?: { uploads?: string } } }>;
+   };
+   const playlistId = data.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
   if (!playlistId) throw new Error(`No uploads playlist found for channel ${channelId}`);
   return playlistId;
 }
