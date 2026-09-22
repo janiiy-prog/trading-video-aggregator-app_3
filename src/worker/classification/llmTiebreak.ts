@@ -42,8 +42,8 @@ Description: ${input.description.slice(0, 500)}`;
     return [];
   }
 
-  const data = await res.json();
-  const text = data.content?.find((b: any) => b.type === "text")?.text ?? "{}";
+  const data = (await res.json()) as { content?: Array<{ type: string; text?: string }> };
+   const text = data.content?.find((b) => b.type === "text")?.text ?? "{}";
 
   let parsed: { strategy?: string; methodology?: string };
   try {
