@@ -1,17 +1,11 @@
 import "dotenv/config";
 import { pool } from "./client.js";
 
-// Replace with real curated channel IDs before running — these are
-// placeholders. Find a channel's ID via its "About" page > Share channel,
-// or the URL if it's already in /channel/UC... form.
- const CURATED_CHANNELS: Array<{ name: string; youtubeChannelId: string }> = [
-     { name: "Some Trading Channel", youtubeChannelId: "AIzaSyC-8xDh7AuWst7pAQbNqk4Qj3K0F9jdcQc" },
-        ];
-];
+const CURATED_CHANNELS: Array<{ name: string; youtubeChannelId: string }> = [];
 
 async function seed() {
   if (CURATED_CHANNELS.length === 0) {
-    console.log("No channels in CURATED_CHANNELS — edit src/db/seed.ts and add some, then re-run.");
+    console.log("No curated channels configured — skipping (using keyword discovery instead).");
     return;
   }
   for (const ch of CURATED_CHANNELS) {
