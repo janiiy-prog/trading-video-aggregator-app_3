@@ -4,8 +4,9 @@ import { pool } from "./client.js";
 // Replace with real curated channel IDs before running — these are
 // placeholders. Find a channel's ID via its "About" page > Share channel,
 // or the URL if it's already in /channel/UC... form.
-const CURATED_CHANNELS: Array<{ name: string; youtubeChannelId: string }> = [
-  // { name: "Example Trading Channel", youtubeChannelId: "UCxxxxxxxxxxxxxxxxxxxxxx" },
+ const CURATED_CHANNELS: Array<{ name: string; youtubeChannelId: string }> = [
+     { name: "Some Trading Channel", youtubeChannelId: "AIzaSyC-8xDh7AuWst7pAQbNqk4Qj3K0F9jdcQc" },
+        ];
 ];
 
 async function seed() {
