@@ -3,10 +3,9 @@ services:
     name: trading-video-api
     runtime: node
     plan: starter
-    # Migration + fake-data seed run on every deploy — both are safe to
-    # repeat (migrate tracks what's applied; seed:fake upserts). This means
-    # a brand-new deploy shows real working data with zero terminal commands.
-    # Once you've got real YouTube data flowing, you can drop "npm run seed:fake".
+    # Migration + fake-data seed + curated-channel seed all run on every
+    # deploy — all three are safe to repeat. This means a brand-new deploy
+    # shows real working data with zero terminal commands.
     buildCommand: npm install && npm run build && npx tsx src/db/migrate.ts && npm run seed:fake && npx tsx src/db/seed.ts
     startCommand: npm start
     envVars:
@@ -17,9 +16,18 @@ services:
           name: trading-video-db
           property: connectionString
       - key: YOUTUBE_API_KEY
-        sync: AIzaSyC-8xDh7AuWst7pAQbNqk4Qj3K0F9jdcQc # optional at first — only needed once you want real YouTube data instead of the fake demo data
-      
+        sync: false # optional at first — only needed once you want real YouTube data instead of the fake demo data
+      - key: ANTHROPIC_API_KEY
+        sync: false # optional — only used for the classification worker's LLM tiebreak step
+      - key: RESEND_API_KEY
+        sync: false # optional — only needed to actually send saved-search digest emails
+      - key: DIGEST_FROM_EMAIL
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false # set to your deployed frontend's URL once you have it
+
   # Channel poller — cheap on YouTube quota (playlistItems.list), safe to run often.
+  # Only matters if you list specific channels in src/db/seed.ts.
   - type: cron
     name: poll-channels
     runtime: node
@@ -27,6 +35,25 @@ services:
     schedule: "0 */6 * * *" # every 6 hours
     buildCommand: npm install && npm run build
     startCommand: npm run start:worker:poll
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: trading-video-db
+          property: connectionString
+      - key: YOUTUBE_API_KEY
+        sync: false
+
+  # Keyword discovery — searches all of YouTube for trading-related terms,
+  # not limited to named channels. Runs once daily to stay within quota.
+  - type: cron
+    name: discover-videos
+    runtime: node
+    plan: starter
+    schedule: "0 3 * * *"
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:worker:discover
     envVars:
       - key: NODE_ENV
         value: production
@@ -87,22 +114,7 @@ services:
         sync: false
       - key: DIGEST_FROM_EMAIL
         sync: false
-     - type: cron
-       name: discover-videos
-       runtime: node
-       plan: starter
-       schedule: "0 3 * * *"
-       buildCommand: npm install && npm run build
-       startCommand: npm run start:worker:discover
-       envVars:
-         - key: NODE_ENV
-           value: production
-         - key: DATABASE_URL
-           fromDatabase:
-             name: trading-video-db
-             property: connectionString
-         - key: YOUTUBE_API_KEY
-           sync: false
+
 databases:
   - name: trading-video-db
     plan: basic-256mb
