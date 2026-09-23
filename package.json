@@ -16,7 +16,9 @@
     "start:worker:poll": "node dist/worker/ingestion/channelPoller.js",
     "start:worker:transcripts": "node dist/worker/transcripts/runTranscripts.js",
     "start:worker:classify": "node dist/worker/classification/runClassify.js",
-    "start:worker:digest": "node dist/worker/notifications/runDigestCron.js"
+    "start:worker:digest": "node dist/worker/notifications/runDigestCron.js",
+       "dev:worker:discover": "tsx src/worker/ingestion/keywordDiscovery.ts",
+   "start:worker:discover": "node dist/worker/ingestion/keywordDiscovery.js"
   },
   "dependencies": {
     "express": "^4.19.2",
