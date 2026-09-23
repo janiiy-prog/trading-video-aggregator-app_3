@@ -17,16 +17,8 @@ services:
           name: trading-video-db
           property: connectionString
       - key: YOUTUBE_API_KEY
-        sync: false # optional at first — only needed once you want real YouTube data instead of the fake demo data
-      - key: ANTHROPIC_API_KEY
-        sync: false # optional — only used for the classification worker's LLM tiebreak step
-      - key: RESEND_API_KEY
-        sync: false # optional — only needed to actually send saved-search digest emails
-      - key: DIGEST_FROM_EMAIL
-        sync: false
-      - key: CORS_ORIGIN
-        sync: false # set to your deployed frontend's URL once you have it
-
+        sync: AIzaSyC-8xDh7AuWst7pAQbNqk4Qj3K0F9jdcQc # optional at first — only needed once you want real YouTube data instead of the fake demo data
+      
   # Channel poller — cheap on YouTube quota (playlistItems.list), safe to run often.
   - type: cron
     name: poll-channels
