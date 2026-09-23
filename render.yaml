@@ -7,7 +7,7 @@ services:
     # repeat (migrate tracks what's applied; seed:fake upserts). This means
     # a brand-new deploy shows real working data with zero terminal commands.
     # Once you've got real YouTube data flowing, you can drop "npm run seed:fake".
-    buildCommand: npm install && npm run build && npx tsx src/db/migrate.ts && npm run seed:fake
+    buildCommand: npm install && npm run build && npx tsx src/db/migrate.ts && npm run seed:fake && npx tsx src/db/seed.ts
     startCommand: npm start
     envVars:
       - key: NODE_ENV
