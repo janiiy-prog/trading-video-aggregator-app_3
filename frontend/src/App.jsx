@@ -146,11 +146,32 @@ function VideoRow({ video, query }) {
     );
   }
 
+  const youtubeUrl = `https://www.youtube.com/watch?v=${video.youtube_video_id}`;
+  const thumbnailUrl = `https://i.ytimg.com/vi/${video.youtube_video_id}/hqdefault.jpg`;
+
   return (
-    <div className="group border-b border-[#d8d4c8] py-4">
+    <a
+      href={youtubeUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group block border-b border-[#d8d4c8] py-4"
+    >
       <div className="flex gap-4">
-        <div className="mt-0.5 flex h-14 w-24 shrink-0 items-center justify-center rounded-sm bg-[#1c2233] text-[#c9c2a3]">
-          <PlayCircle size={22} strokeWidth={1.5} />
+        <div className="relative mt-0.5 h-14 w-24 shrink-0 overflow-hidden rounded-sm bg-[#1c2233]">
+          <img
+            src={thumbnailUrl}
+            alt=""
+            className="h-full w-full object-cover"
+            loading="lazy"
+            onError={(e) => {
+              // Fake/demo video IDs (from seed:fake) don't have a real thumbnail — fall back to the icon.
+              e.target.style.display = "none";
+              e.target.nextSibling.style.display = "flex";
+            }}
+          />
+          <div className="absolute inset-0 hidden items-center justify-center text-[#c9c2a3]" style={{ display: "none" }}>
+            <PlayCircle size={22} strokeWidth={1.5} />
+          </div>
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-3">
@@ -174,7 +195,7 @@ function VideoRow({ video, query }) {
           )}
         </div>
       </div>
-    </div>
+    </a>
   );
 }
 
