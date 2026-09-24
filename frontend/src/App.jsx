@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Search, Clock, Eye, ChevronDown, ChevronRight, X, Bell, PlayCircle, ExternalLink, Loader2 } from "lucide-react";
 
 // Locally this falls back to the default `npm run dev:api` port. In
@@ -7,17 +7,17 @@ import { Search, Clock, Eye, ChevronDown, ChevronRight, X, Bell, PlayCircle, Ext
 const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:3000";
 
 const FACET_LABELS = {
-  instrument: "INSTRUMENT",
-  methodology: "METHODOLOGY",
-  strategy: "STRATEGY",
-  format: "FORMAT",
+  instrument: "Instrument",
+  methodology: "Methodology",
+  strategy: "Strategy",
+  format: "Format",
 };
 
 const SORT_TO_API = { Newest: "newest", Relevance: "relevance", "Most viewed": "most_viewed" };
 
 const CONF_STYLE = {
-  high: "border-[#8a7a3f] text-[#5c4f22] bg-[#f4ecd0]",
-  low: "border-[#c9c3b4] text-[#7a7566] bg-transparent",
+  high: "border-[#D9B45C] text-[#8A6512] bg-[#FBF3DE]",
+  low: "border-[#DDE1E6] text-[#5B6270] bg-transparent",
 };
 
 // ---------- Formatting helpers (API returns raw timestamps/numbers, not display strings) ----------
@@ -91,25 +91,25 @@ function FacetGroup({ label, options, counts, selected, onToggle, defaultOpen })
   const [open, setOpen] = useState(defaultOpen);
   if (options.length === 0) return null; // no data yet for this facet — don't show an empty section
   return (
-    <div className="border-b border-[#d8d4c8] py-3">
+    <div className="border-b border-[#E4E7EC] py-3">
       <button onClick={() => setOpen(!open)} className="flex w-full items-center justify-between text-left">
-        <span className="font-mono text-[11px] tracking-wide text-[#5b5646]">{label}</span>
-        {open ? <ChevronDown size={14} className="text-[#8a8471]" /> : <ChevronRight size={14} className="text-[#8a8471]" />}
+        <span style={{ fontFamily: "'Space Grotesk', sans-serif" }} className="text-[13px] font-medium text-[#12151C]">{label}</span>
+        {open ? <ChevronDown size={14} className="text-[#9AA1AD]" /> : <ChevronRight size={14} className="text-[#9AA1AD]" />}
       </button>
       {open && (
-        <div className="mt-2 flex flex-col gap-1.5">
+        <div className="mt-2 flex flex-col gap-1">
           {options.map((opt) => {
             const isOn = selected.includes(opt);
             return (
               <button
                 key={opt}
                 onClick={() => onToggle(opt)}
-                className={`flex items-center justify-between rounded-sm px-1.5 py-1 text-[13px] transition-colors ${
-                  isOn ? "bg-[#1c2233] text-[#f2efe6]" : "text-[#2c2a22] hover:bg-[#e7e3d6]"
+                className={`flex items-center justify-between rounded px-2 py-1.5 text-[13px] transition-colors ${
+                  isOn ? "bg-[#12151C] text-white" : "text-[#2B303B] hover:bg-[#F6F7F9]"
                 }`}
               >
                 <span>{opt}</span>
-                <span className={`font-mono text-[11px] ${isOn ? "text-[#c9c2a3]" : "text-[#948d78]"}`}>
+                <span className={`font-mono text-[11px] tabular-nums ${isOn ? "text-[#C9962C]" : "text-[#9AA1AD]"}`}>
                   {counts[opt] ?? 0}
                 </span>
               </button>
@@ -124,10 +124,10 @@ function FacetGroup({ label, options, counts, selected, onToggle, defaultOpen })
 function TagChip({ label, muted }) {
   return (
     <span
-      className={`rounded-sm border px-1.5 py-0.5 font-mono text-[10.5px] leading-none ${muted ? CONF_STYLE.low : CONF_STYLE.high}`}
+      className={`rounded border px-1.5 py-0.5 text-[11px] font-medium leading-none ${muted ? CONF_STYLE.low : CONF_STYLE.high}`}
       title={muted ? "Unverified — low classification confidence" : undefined}
     >
-      {label}{muted ? " ·" : ""}
+      {label}
     </span>
   );
 }
@@ -140,7 +140,7 @@ function VideoRow({ video, query }) {
     return (
       <>
         {text.slice(0, idx)}
-        <mark className="bg-[#f4ecd0] text-[#1c2233]">{text.slice(idx, idx + query.length)}</mark>
+        <mark className="bg-[#FBF3DE] text-[#12151C]">{text.slice(idx, idx + query.length)}</mark>
         {text.slice(idx + query.length)}
       </>
     );
@@ -154,10 +154,10 @@ function VideoRow({ video, query }) {
       href={youtubeUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className="group block border-b border-[#d8d4c8] py-4"
+      className="group block border-b border-[#E4E7EC] py-4"
     >
       <div className="flex gap-4">
-        <div className="relative mt-0.5 h-14 w-24 shrink-0 overflow-hidden rounded-sm bg-[#1c2233]">
+        <div className="relative mt-0.5 h-14 w-24 shrink-0 overflow-hidden rounded bg-[#F6F7F9]">
           <img
             src={thumbnailUrl}
             alt=""
@@ -169,21 +169,20 @@ function VideoRow({ video, query }) {
               e.target.nextSibling.style.display = "flex";
             }}
           />
-          <div className="absolute inset-0 hidden items-center justify-center text-[#c9c2a3]" style={{ display: "none" }}>
+          <div className="absolute inset-0 hidden items-center justify-center text-[#9AA1AD]" style={{ display: "none" }}>
             <PlayCircle size={22} strokeWidth={1.5} />
           </div>
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-3">
-            <h3 className="text-[15px] font-medium leading-snug text-[#1c2233] group-hover:underline">{video.title}</h3>
-            <ExternalLink size={14} className="mt-1 shrink-0 text-[#a39d89] opacity-0 group-hover:opacity-100" />
+            <h3 className="text-[15px] font-medium leading-snug text-[#12151C] group-hover:underline">{video.title}</h3>
+            <ExternalLink size={14} className="mt-1 shrink-0 text-[#C2C7CF] opacity-0 group-hover:opacity-100" />
           </div>
-          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px] text-[#7a7566]">
+          <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-[#5B6270]">
             <span>{video.channel_name}</span>
-            <span>·</span>
             <span>{timeAgo(video.published_at)}</span>
-            <span className="flex items-center gap-1"><Clock size={11} />{formatDuration(video.duration_seconds)}</span>
-            <span className="flex items-center gap-1"><Eye size={11} />{formatViews(video.view_count)}</span>
+            <span className="flex items-center gap-1 font-mono tabular-nums"><Clock size={11} />{formatDuration(video.duration_seconds)}</span>
+            <span className="flex items-center gap-1 font-mono tabular-nums"><Eye size={11} />{formatViews(video.view_count)}</span>
           </div>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {video.tags.map((t) => (
@@ -191,7 +190,7 @@ function VideoRow({ video, query }) {
             ))}
           </div>
           {video.snippet && (
-            <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-[#4a4636]">{highlight(video.snippet)}</p>
+            <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-[#5B6270]">{highlight(video.snippet)}</p>
           )}
         </div>
       </div>
@@ -286,31 +285,33 @@ export default function TradingVideoAggregator() {
   }
 
   return (
-    <div className="min-h-screen bg-[#efece2] text-[#1c2233]" style={{ fontFamily: "system-ui, sans-serif" }}>
-      <style>{`.font-mono { font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; }`}</style>
+    <div className="min-h-screen bg-white text-[#12151C]" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
+      <style>{`.font-mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; }`}</style>
 
-      <div className="border-b border-[#d8d4c8] bg-[#1c2233] text-[#f2efe6]">
-        <div className="mx-auto flex max-w-6xl items-center gap-6 px-6 py-3">
-          <div className="font-mono text-[13px] tracking-tight text-[#c9c2a3]">SPX/ES · VIDEO DESK</div>
+      <div className="border-b-2 border-[#B8860B] bg-white">
+        <div className="mx-auto flex max-w-6xl items-center gap-6 px-6 py-4">
+          <div style={{ fontFamily: "'Space Grotesk', sans-serif" }} className="shrink-0 text-[16px] font-semibold tracking-tight text-[#12151C]">
+            SPX/ES Video Desk
+          </div>
           <div className="relative flex-1">
-            <Search size={14} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#8a8471]" />
+            <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#9AA1AD]" />
             <input
               value={queryInput}
               onChange={(e) => setQueryInput(e.target.value)}
               placeholder="Search titles, transcripts, channels…"
-              className="w-full rounded-sm border border-[#3a4257] bg-[#242b3f] py-1.5 pl-8 pr-3 text-[13px] text-[#f2efe6] placeholder-[#7f8598] outline-none focus:border-[#c9c2a3]"
+              className="w-full rounded border border-[#E4E7EC] bg-[#F6F7F9] py-2 pl-9 pr-3 text-[13px] text-[#12151C] placeholder-[#9AA1AD] outline-none focus:border-[#B8860B] focus:bg-white"
             />
           </div>
           <button
             onClick={() => { setShowSaveModal(true); setSaveState("idle"); }}
-            className="flex shrink-0 items-center gap-1.5 rounded-sm border border-[#3a4257] px-3 py-1.5 text-[12px] text-[#c9c2a3] hover:border-[#c9c2a3] hover:text-[#f2efe6]"
+            className="flex shrink-0 items-center gap-1.5 rounded border border-[#E4E7EC] px-3 py-2 text-[13px] font-medium text-[#2B303B] hover:border-[#B8860B] hover:text-[#8A6512]"
           >
             <Bell size={13} /> Save this search
           </button>
         </div>
       </div>
 
-      <div className="mx-auto flex max-w-6xl gap-8 px-6 py-6">
+      <div className="mx-auto flex max-w-6xl gap-10 px-6 py-6">
         <aside className="w-56 shrink-0">
           {Object.entries(FACET_LABELS).map(([category, label]) => (
             <FacetGroup
@@ -327,16 +328,16 @@ export default function TradingVideoAggregator() {
 
         <main className="min-w-0 flex-1">
           <div className="mb-3 flex items-center justify-between">
-            <div className="font-mono text-[12px] text-[#5b5646]">
+            <div className="text-[13px] text-[#5B6270]">
               {loadingVideos ? "Loading…" : `${totalOnPage} video${totalOnPage !== 1 ? "s" : ""} on this page`}
-              {activeFilters.length > 0 && <span> · {activeFilters.length} filter{activeFilters.length !== 1 ? "s" : ""} applied</span>}
+              {activeFilters.length > 0 && <span> — {activeFilters.length} filter{activeFilters.length !== 1 ? "s" : ""} applied</span>}
             </div>
-            <div className="flex items-center gap-2 font-mono text-[12px] text-[#5b5646]">
+            <div className="flex items-center gap-2 text-[13px] text-[#5B6270]">
               <span>Sort</span>
               <select
                 value={sort}
                 onChange={(e) => { setSort(e.target.value); setPage(1); }}
-                className="rounded-sm border border-[#d8d4c8] bg-transparent px-2 py-1 text-[#1c2233] outline-none"
+                className="rounded border border-[#E4E7EC] bg-white px-2 py-1 text-[#12151C] outline-none"
               >
                 <option>Newest</option>
                 <option>Relevance</option>
@@ -351,30 +352,30 @@ export default function TradingVideoAggregator() {
                 <button
                   key={facet + v}
                   onClick={() => toggle(facet, v)}
-                  className="flex items-center gap-1 rounded-sm border border-[#1c2233] bg-[#1c2233] px-2 py-1 font-mono text-[11px] text-[#f2efe6]"
+                  className="flex items-center gap-1 rounded bg-[#12151C] px-2 py-1 text-[12px] text-white"
                 >
                   {v} <X size={11} />
                 </button>
               ))}
               <button
                 onClick={() => { setSelected({ instrument: [], methodology: [], strategy: [], format: [] }); setPage(1); }}
-                className="px-2 py-1 font-mono text-[11px] text-[#8a7a3f] underline underline-offset-2"
+                className="px-2 py-1 text-[12px] text-[#8A6512] underline underline-offset-2"
               >
-                clear all
+                Clear all
               </button>
             </div>
           )}
 
           {videosError ? (
-            <div className="py-16 text-center text-[13px] text-[#a13d3d]">
+            <div className="py-16 text-center text-[13px] text-[#B3261E]">
               Couldn't reach the API at {API_BASE} — {videosError}. Is the backend running?
             </div>
           ) : loadingVideos ? (
-            <div className="flex items-center justify-center gap-2 py-16 text-[13px] text-[#7a7566]">
+            <div className="flex items-center justify-center gap-2 py-16 text-[13px] text-[#5B6270]">
               <Loader2 size={16} className="animate-spin" /> Loading videos…
             </div>
           ) : videos.length === 0 ? (
-            <div className="py-16 text-center text-[13px] text-[#7a7566]">No videos match these filters. Try removing one.</div>
+            <div className="py-16 text-center text-[13px] text-[#5B6270]">No videos match these filters. Try removing one.</div>
           ) : (
             <div>
               {videos.map((v) => <VideoRow key={v.id} video={v} query={query} />)}
@@ -382,7 +383,7 @@ export default function TradingVideoAggregator() {
           )}
 
           {!loadingVideos && !videosError && (videos.length > 0 || page > 1) && (
-            <div className="mt-4 flex items-center justify-between font-mono text-[12px] text-[#5b5646]">
+            <div className="mt-4 flex items-center justify-between text-[13px] text-[#5B6270]">
               <button
                 disabled={page === 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
@@ -404,23 +405,23 @@ export default function TradingVideoAggregator() {
       </div>
 
       {showSaveModal && (
-        <div className="fixed inset-0 z-10 flex items-center justify-center bg-[#1c2233]/40 px-6">
-          <div className="w-full max-w-sm rounded-sm border border-[#d8d4c8] bg-[#efece2] p-5 shadow-xl">
+        <div className="fixed inset-0 z-10 flex items-center justify-center bg-[#12151C]/40 px-6">
+          <div className="w-full max-w-sm rounded border border-[#E4E7EC] bg-white p-5 shadow-lg">
             {saveState !== "saved" ? (
               <>
-                <div className="mb-1 font-mono text-[11px] tracking-wide text-[#5b5646]">SAVE SEARCH</div>
-                <p className="mb-3 text-[13px] text-[#4a4636]">
+                <div style={{ fontFamily: "'Space Grotesk', sans-serif" }} className="mb-1 text-[15px] font-semibold text-[#12151C]">Save search</div>
+                <p className="mb-3 text-[13px] text-[#5B6270]">
                   We'll email a daily digest when new videos match {activeFilters.length > 0 ? "these filters" : "this search"}.
                 </p>
                 <input
                   value={savedName}
                   onChange={(e) => setSavedName(e.target.value)}
                   placeholder={'Name this search, e.g. "ICT ES scalping"'}
-                  className="mb-3 w-full rounded-sm border border-[#d8d4c8] bg-white px-2.5 py-1.5 text-[13px] outline-none focus:border-[#1c2233]"
+                  className="mb-3 w-full rounded border border-[#E4E7EC] bg-white px-2.5 py-1.5 text-[13px] outline-none focus:border-[#B8860B]"
                 />
                 <div className="mb-4 flex flex-wrap gap-1.5">
                   {activeFilters.length === 0 && !query ? (
-                    <span className="text-[12px] text-[#948d78]">No filters set — this will match all new videos.</span>
+                    <span className="text-[12px] text-[#9AA1AD]">No filters set — this will match all new videos.</span>
                   ) : (
                     <>
                       {query && <TagChip label={`q: ${query}`} />}
@@ -429,14 +430,14 @@ export default function TradingVideoAggregator() {
                   )}
                 </div>
                 {saveState === "error" && (
-                  <p className="mb-3 text-[12px] text-[#a13d3d]">Couldn't save — check the API is running and try again.</p>
+                  <p className="mb-3 text-[12px] text-[#B3261E]">Couldn't save — check the API is running and try again.</p>
                 )}
                 <div className="flex justify-end gap-2">
-                  <button onClick={() => setShowSaveModal(false)} className="px-3 py-1.5 text-[13px] text-[#5b5646]">Cancel</button>
+                  <button onClick={() => setShowSaveModal(false)} className="px-3 py-1.5 text-[13px] text-[#5B6270]">Cancel</button>
                   <button
                     onClick={handleSaveSearch}
                     disabled={saveState === "saving"}
-                    className="flex items-center gap-1.5 rounded-sm bg-[#1c2233] px-3 py-1.5 text-[13px] text-[#f2efe6] disabled:opacity-60"
+                    className="flex items-center gap-1.5 rounded bg-[#12151C] px-3 py-1.5 text-[13px] text-white disabled:opacity-60"
                   >
                     {saveState === "saving" && <Loader2 size={13} className="animate-spin" />}
                     Save search
@@ -445,14 +446,14 @@ export default function TradingVideoAggregator() {
               </>
             ) : (
               <>
-                <div className="mb-1 font-mono text-[11px] tracking-wide text-[#5b5646]">SAVED</div>
-                <p className="mb-4 text-[13px] text-[#4a4636]">
+                <div style={{ fontFamily: "'Space Grotesk', sans-serif" }} className="mb-1 text-[15px] font-semibold text-[#12151C]">Saved</div>
+                <p className="mb-4 text-[13px] text-[#5B6270]">
                   "{savedName || "Untitled search"}" will check for new matches every few hours and send you a digest.
                 </p>
                 <div className="flex justify-end">
                   <button
                     onClick={() => { setShowSaveModal(false); setSaveState("idle"); setSavedName(""); }}
-                    className="rounded-sm bg-[#1c2233] px-3 py-1.5 text-[13px] text-[#f2efe6]"
+                    className="rounded bg-[#12151C] px-3 py-1.5 text-[13px] text-white"
                   >
                     Done
                   </button>
