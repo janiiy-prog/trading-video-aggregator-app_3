@@ -46,7 +46,7 @@ videosRouter.get("/videos", async (req, res) => {
 
   const sql = `
     select
-      v.id, v.title, v.description, v.published_at, v.duration_seconds, v.view_count,
+      v.id, v.youtube_video_id, v.title, v.description, v.published_at, v.duration_seconds, v.view_count,
       c.name as channel_name,
       ${snippetSelect},
       coalesce(
